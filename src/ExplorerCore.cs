@@ -8,6 +8,7 @@ global using UnityEngine.UI;
 global using UniverseLib;
 global using UniverseLib.Utility;
 using UnityExplorer.Config;
+using UnityExplorer.MCP;
 using UnityExplorer.ObjectExplorer;
 using UnityExplorer.Runtime;
 using UnityExplorer.UI;
@@ -71,6 +72,8 @@ namespace UnityExplorer
             Log($"{NAME} {VERSION} ({Universe.Context}) initialized.");
 
             // InspectorManager.Inspect(typeof(Tests.TestClass));
+
+            MCPBridge.Init();
         }
 
         internal static void Update()

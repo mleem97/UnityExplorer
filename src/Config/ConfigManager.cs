@@ -28,6 +28,11 @@ namespace UnityExplorer.Config
         public static ConfigElement<string> CSConsole_Assembly_Blacklist;
         public static ConfigElement<string> Reflection_Signature_Blacklist;
 
+        // MCP Settings
+        public static ConfigElement<string> MCP_Server_URL;
+        public static ConfigElement<bool> MCP_Auto_Connect;
+        public static ConfigElement<float> MCP_Reconnect_Delay;
+
         // internal configs
         internal static InternalConfigHandler InternalHandler { get; private set; }
         internal static readonly Dictionary<UIManager.Panels, ConfigElement<string>> PanelSaveData = new();
@@ -139,6 +144,18 @@ namespace UnityExplorer.Config
                 "Seperate signatures with a semicolon ';'.\r\n" +
                 "For example, to blacklist Camera.main, you would add 'UnityEngine.Camera.main;'",
                 "");
+
+            MCP_Server_URL = new("MCP Server URL",
+                "The WebSocket URL of the MCP server to connect to.",
+                "ws://localhost:27015");
+
+            MCP_Auto_Connect = new("MCP Auto Connect",
+                "Automatically connect to the MCP server on startup.",
+                true);
+
+            MCP_Reconnect_Delay = new("MCP Reconnect Delay",
+                "Seconds between reconnection attempts to the MCP server.",
+                5f);
         }
     }
 }
