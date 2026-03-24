@@ -53,7 +53,13 @@ namespace UnityExplorer.MCP
 
         internal static void Init()
         {
-            // Handler registration will be added in Tasks 10-13
+            Handlers.StatusCommandHandler.Register();
+            Handlers.SceneCommandHandler.Register();
+            Handlers.HierarchyCommandHandler.Register();
+            Handlers.SearchCommandHandler.Register();
+            Handlers.InspectionCommandHandler.Register();
+            Handlers.ConsoleCommandHandler.Register();
+            Handlers.LogCommandHandler.Register();
         }
     }
 }
