@@ -1,4 +1,5 @@
 using System.Globalization;
+using UnityExplorer.Runtime;
 
 namespace UnityExplorer.MCP.Handlers
 {
@@ -65,9 +66,9 @@ namespace UnityExplorer.MCP.Handlers
             var b = new JsonHelper.JsonBuilder();
             b.StartObject().Key("type").Value(type.FullName).Key("members").StartArray();
 
-            // Fields
             foreach (FieldInfo field in type.GetFields(flags))
             {
+                if (UERuntimeHelper.IsBlacklisted(field)) continue;
                 if (!string.IsNullOrEmpty(memberFilter) && !field.Name.ContainsIgnoreCase(memberFilter))
                     continue;
                 try
@@ -84,9 +85,9 @@ namespace UnityExplorer.MCP.Handlers
                 catch { }
             }
 
-            // Properties
             foreach (PropertyInfo prop in type.GetProperties(flags))
             {
+                if (UERuntimeHelper.IsBlacklisted(prop)) continue;
                 if (!string.IsNullOrEmpty(memberFilter) && !prop.Name.ContainsIgnoreCase(memberFilter))
                     continue;
                 if (prop.GetIndexParameters().Length > 0) continue; // skip indexers
@@ -112,10 +113,10 @@ namespace UnityExplorer.MCP.Handlers
                 catch { }
             }
 
-            // Methods (signatures only, no values)
             foreach (MethodInfo method in type.GetMethods(flags))
             {
-                if (method.IsSpecialName) continue; // skip property getters/setters
+                if (method.IsSpecialName) continue;
+                if (UERuntimeHelper.IsBlacklisted(method)) continue;
                 if (!string.IsNullOrEmpty(memberFilter) && !method.Name.ContainsIgnoreCase(memberFilter))
                     continue;
 
@@ -199,7 +200,6 @@ namespace UnityExplorer.MCP.Handlers
 
                 var b = new JsonHelper.JsonBuilder();
                 b.StartObject()
-                    .Key("success").Value(true)
                     .Key("new_value").Raw(SerializeValue(newVal))
                 .EndObject();
                 return CommandResponse.Ok(req.Id, b.ToString());
@@ -214,7 +214,6 @@ namespace UnityExplorer.MCP.Handlers
 
                 var b = new JsonHelper.JsonBuilder();
                 b.StartObject()
-                    .Key("success").Value(true)
                     .Key("new_value").Raw(SerializeValue(newVal))
                 .EndObject();
                 return CommandResponse.Ok(req.Id, b.ToString());
@@ -291,7 +290,6 @@ namespace UnityExplorer.MCP.Handlers
 
             var b = new JsonHelper.JsonBuilder();
             b.StartObject()
-                .Key("success").Value(true)
                 .Key("return_value").Raw(SerializeValue(result))
             .EndObject();
             return CommandResponse.Ok(req.Id, b.ToString());
@@ -307,11 +305,7 @@ namespace UnityExplorer.MCP.Handlers
 
             if (val is bool b) return b ? "true" : "false";
             if (val is string s)
-            {
-                var sb = new JsonHelper.JsonBuilder();
-                sb.Value(s);
-                return sb.ToString();
-            }
+                return JsonHelper.EscapeString(s);
             if (val is int || val is long || val is short || val is byte || val is sbyte
                 || val is uint || val is ulong || val is ushort)
                 return val.ToString();

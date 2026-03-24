@@ -28,8 +28,8 @@ namespace UnityExplorer.MCP
             public JsonBuilder EndObject()
             {
                 sb.Append('}');
-                hasItem = hasItemStack.Count > 0 ? hasItemStack.Pop() : false;
-                hasItem = true; // the closed object/array counts as an item in the parent
+                if (hasItemStack.Count > 0) hasItemStack.Pop();
+                hasItem = true;
                 return this;
             }
 
@@ -45,8 +45,8 @@ namespace UnityExplorer.MCP
             public JsonBuilder EndArray()
             {
                 sb.Append(']');
-                hasItem = hasItemStack.Count > 0 ? hasItemStack.Pop() : false;
-                hasItem = true; // the closed object/array counts as an item in the parent
+                if (hasItemStack.Count > 0) hasItemStack.Pop();
+                hasItem = true;
                 return this;
             }
 
@@ -92,6 +92,7 @@ namespace UnityExplorer.MCP
 
             public override string ToString() => sb.ToString();
 
+            internal static void AppendEscapedPublic(StringBuilder sb, string s) => AppendEscaped(sb, s);
             private static void AppendEscaped(StringBuilder sb, string s)
             {
                 foreach (char c in s)
@@ -114,6 +115,17 @@ namespace UnityExplorer.MCP
                     }
                 }
             }
+        }
+
+        /// <summary>Escape and quote a string as a JSON value.</summary>
+        internal static string EscapeString(string s)
+        {
+            if (s == null) return "null";
+            var sb = new System.Text.StringBuilder(s.Length + 2);
+            sb.Append('"');
+            JsonBuilder.AppendEscapedPublic(sb, s);
+            sb.Append('"');
+            return sb.ToString();
         }
 
         // ── Parsing JSON ────────────────────────────────────────────────

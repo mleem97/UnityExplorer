@@ -216,10 +216,14 @@ namespace UnityExplorer.MCP
 
         // ── WebSocket Frame Helpers ─────────────────────────────────────
 
+        private static readonly System.Random maskRng = new();
+        private static readonly byte[] maskBuf = new byte[4];
+
         private static void SendFrame(string text)
         {
             byte[] payload = Encoding.UTF8.GetBytes(text);
-            byte[] mask = Guid.NewGuid().ToByteArray();
+            byte[] mask = maskBuf;
+            maskRng.NextBytes(mask);
 
             // Build frame: text opcode (0x81), masked
             int headerLen = 2;
@@ -273,68 +277,71 @@ namespace UnityExplorer.MCP
 
         private static string ReadFrame(NetworkStream s)
         {
-            // Read first 2 bytes
-            byte[] header = ReadExact(s, 2);
-            if (header == null) return null;
-
-            int opcode = header[0] & 0x0F;
-            bool masked = (header[1] & 0x80) != 0;
-            long payloadLen = header[1] & 0x7F;
-
-            if (opcode == 0x08) return null; // Close frame
-
-            if (payloadLen == 126)
+            while (true)
             {
-                byte[] ext = ReadExact(s, 2);
-                if (ext == null) return null;
-                payloadLen = (ext[0] << 8) | ext[1];
-            }
-            else if (payloadLen == 127)
-            {
-                byte[] ext = ReadExact(s, 8);
-                if (ext == null) return null;
-                payloadLen = 0;
-                for (int i = 0; i < 8; i++)
-                    payloadLen = (payloadLen << 8) | ext[i];
-            }
+                byte[] header = ReadExact(s, 2);
+                if (header == null) return null;
 
-            byte[] maskKey = null;
-            if (masked)
-            {
-                maskKey = ReadExact(s, 4);
-                if (maskKey == null) return null;
-            }
+                int opcode = header[0] & 0x0F;
+                bool masked = (header[1] & 0x80) != 0;
+                long payloadLen = header[1] & 0x7F;
 
-            byte[] payload = ReadExact(s, (int)payloadLen);
-            if (payload == null) return null;
+                if (opcode == 0x08) return null; // Close frame
 
-            if (masked)
-                for (int i = 0; i < payload.Length; i++)
-                    payload[i] ^= maskKey[i % 4];
-
-            // Handle ping with pong (control frames have payload <= 125 bytes per RFC 6455)
-            if (opcode == 0x09 && payload.Length <= 125)
-            {
-                byte[] pong = new byte[2 + payload.Length + 4];
-                pong[0] = 0x8A; // FIN + pong
-                pong[1] = (byte)(0x80 | payload.Length);
-                byte[] pMask = Guid.NewGuid().ToByteArray();
-                Array.Copy(pMask, 0, pong, 2, 4);
-                for (int i = 0; i < payload.Length; i++)
-                    pong[6 + i] = (byte)(payload[i] ^ pMask[i % 4]);
-                lock (sendLock)
+                if (payloadLen == 126)
                 {
-                    if (stream != null)
-                        stream.Write(pong, 0, pong.Length);
+                    byte[] ext = ReadExact(s, 2);
+                    if (ext == null) return null;
+                    payloadLen = (ext[0] << 8) | ext[1];
                 }
-                return ReadFrame(s); // read next real frame
+                else if (payloadLen == 127)
+                {
+                    byte[] ext = ReadExact(s, 8);
+                    if (ext == null) return null;
+                    payloadLen = 0;
+                    for (int i = 0; i < 8; i++)
+                        payloadLen = (payloadLen << 8) | ext[i];
+                }
+
+                byte[] maskKey = null;
+                if (masked)
+                {
+                    maskKey = ReadExact(s, 4);
+                    if (maskKey == null) return null;
+                }
+
+                byte[] payload = ReadExact(s, (int)payloadLen);
+                if (payload == null) return null;
+
+                if (masked)
+                    for (int i = 0; i < payload.Length; i++)
+                        payload[i] ^= maskKey[i % 4];
+
+                // Handle ping with pong
+                if (opcode == 0x09 && payload.Length <= 125)
+                {
+                    byte[] pMask = new byte[4];
+                    maskRng.NextBytes(pMask);
+                    byte[] pong = new byte[2 + 4 + payload.Length];
+                    pong[0] = 0x8A; // FIN + pong
+                    pong[1] = (byte)(0x80 | payload.Length);
+                    Array.Copy(pMask, 0, pong, 2, 4);
+                    for (int i = 0; i < payload.Length; i++)
+                        pong[6 + i] = (byte)(payload[i] ^ pMask[i % 4]);
+                    lock (sendLock)
+                    {
+                        if (stream != null)
+                            stream.Write(pong, 0, pong.Length);
+                    }
+                    continue; // loop to read next frame
+                }
+
+                // Only process text frames (0x01), skip others
+                if (opcode != 0x01)
+                    continue;
+
+                return Encoding.UTF8.GetString(payload);
             }
-
-            // Only process text frames (0x01), skip pong (0x0A) and others
-            if (opcode != 0x01)
-                return ReadFrame(s);
-
-            return Encoding.UTF8.GetString(payload);
         }
 
         private static byte[] ReadExact(NetworkStream s, int count)

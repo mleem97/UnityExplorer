@@ -6,8 +6,8 @@ namespace UnityExplorer.MCP
     /// </summary>
     internal static class CommandDispatcher
     {
+        private const int MaxCommandsPerFrame = 10;
         private static readonly LockedQueue<string> incomingMessages = new();
-
         private static readonly Dictionary<string, Func<CommandRequest, CommandResponse>> handlers = new();
 
         internal static void RegisterHandler(string command, Func<CommandRequest, CommandResponse> handler)
@@ -22,8 +22,8 @@ namespace UnityExplorer.MCP
 
         internal static void Update()
         {
-            int maxPerFrame = 10;
-            while (maxPerFrame-- > 0 && incomingMessages.TryDequeue(out string raw))
+            int remaining = MaxCommandsPerFrame;
+            while (remaining-- > 0 && incomingMessages.TryDequeue(out string raw))
             {
                 CommandResponse response;
                 CommandRequest request = null;

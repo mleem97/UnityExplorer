@@ -4,9 +4,12 @@ namespace UnityExplorer.MCP.Handlers
 {
     internal static class LogCommandHandler
     {
+        private static FieldInfo logsField;
+
         internal static void Register()
         {
             CommandDispatcher.RegisterHandler("get_logs", HandleGetLogs);
+            logsField = typeof(LogPanel).GetField("Logs", BindingFlags.NonPublic | BindingFlags.Static);
         }
 
         private static CommandResponse HandleGetLogs(CommandRequest req)
@@ -14,8 +17,6 @@ namespace UnityExplorer.MCP.Handlers
             int count = req.GetInt("count", 50);
             string logTypeFilter = req.GetString("log_type", "all");
 
-            // Access logs via reflection since LogPanel.Logs is private
-            FieldInfo logsField = typeof(LogPanel).GetField("Logs", BindingFlags.NonPublic | BindingFlags.Static);
             if (logsField == null)
                 return CommandResponse.Fail(req.Id, "Cannot access log data.");
 
@@ -25,7 +26,6 @@ namespace UnityExplorer.MCP.Handlers
             b.StartObject().Key("logs").StartArray();
 
             int added = 0;
-            // Iterate from most recent
             for (int i = allLogs.Count - 1; i >= 0 && added < count; i--)
             {
                 LogPanel.LogInfo log = allLogs[i];

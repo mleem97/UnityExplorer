@@ -16,8 +16,11 @@ namespace UnityExplorer.MCP
         {
             if (!obj) return 0;
             int id = obj.GetInstanceID();
-            unityObjects[id] = new WeakReference(obj);
-            MaybeCleanup();
+            if (!unityObjects.ContainsKey(id))
+            {
+                unityObjects[id] = new WeakReference(obj);
+                MaybeCleanup();
+            }
             return id;
         }
 

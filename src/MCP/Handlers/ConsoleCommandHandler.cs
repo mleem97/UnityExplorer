@@ -48,7 +48,7 @@ namespace UnityExplorer.MCP.Handlers
 
                     var b = new JsonHelper.JsonBuilder();
                     b.StartObject()
-                        .Key("success").Value(true)
+    
                         .Key("output").Value(outputWriter.ToString().Trim());
 
                     if (ret != null)
@@ -71,7 +71,7 @@ namespace UnityExplorer.MCP.Handlers
 
                     var b = new JsonHelper.JsonBuilder();
                     b.StartObject()
-                        .Key("success").Value(true)
+    
                         .Key("output").Value("Code compiled successfully (using directive or class definition).")
                         .Key("return_value").Null()
                     .EndObject();
