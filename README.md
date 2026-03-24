@@ -9,20 +9,17 @@
   ✔️ Supports most Unity versions from 5.2 to 2021+ (IL2CPP and Mono).
 </p>
 <p align="center">
+  🤖 <b>NEW:</b> <a href="#mcp-server-for-claude-code">MCP Server</a> — let Claude Code inspect and interact with running games
+</p>
+<p align="center">
   ✨ Powered by <a href="https://github.com/sinai-dev/UniverseLib">UniverseLib</a>
 </p>
 
-# Releases  [![](https://img.shields.io/github/downloads/sinai-dev/UnityExplorer/total.svg)](../../releases)
+# Releases
 
-[![](https://img.shields.io/github/release/sinai-dev/UnityExplorer.svg?label=version)](../../releases/latest) [![](https://img.shields.io/github/workflow/status/sinai-dev/UnityExplorer/Build%20UnityExplorer)](https://github.com/sinai-dev/UnityExplorer/actions) [![](https://img.shields.io/github/downloads/sinai-dev/UnityExplorer/latest/total.svg)](../../releases/latest)
+This is a fork of [sinai-dev/UnityExplorer](https://github.com/sinai-dev/UnityExplorer) that adds MCP (Model Context Protocol) server support for Claude Code integration.
 
-⚡ Thunderstore releases: [BepInEx Mono](https://thunderstore.io/package/sinai-dev/UnityExplorer) | [BepInEx IL2CPP](https://gtfo.thunderstore.io/package/sinai-dev/UnityExplorer_IL2CPP) | [MelonLoader IL2CPP](https://boneworks.thunderstore.io/package/sinai-dev/UnityExplorer_IL2CPP_ML)
-
-## Release schedule
-
-Releases will be posted at most once per week, generally on weekends. 
-
-Nightly builds can be found [here](https://github.com/sinai-dev/UnityExplorer/actions).
+[![](https://img.shields.io/github/release/DrDraxi/UnityExplorer.svg?label=version)](../../releases/latest) [![](https://img.shields.io/github/downloads/DrDraxi/UnityExplorer/total.svg)](../../releases/latest)
 
 ## BepInEx
 
@@ -167,6 +164,40 @@ The inspector is used to see detailed information on objects of any type and man
   * BepInEx: `BepInEx\config\com.sinai.unityexplorer.cfg`
   * MelonLoader: `UserData\MelonPreferences.cfg`
   * Standalone `{DLL_location}\sinai-dev-UnityExplorer\config.cfg`
+
+# MCP Server for Claude Code
+
+This fork includes an MCP server that lets [Claude Code](https://docs.anthropic.com/en/docs/claude-code) programmatically inspect and interact with any running Unity game.
+
+```
+Claude Code <--(MCP/stdio)--> FastMCP Server (Python) <--(WebSocket)--> UnityExplorer (in game)
+```
+
+### Quick Start
+
+1. Install UnityExplorer from the [releases](../../releases/latest) (same as normal)
+2. Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
+3. Add the MCP server to Claude Code:
+```bash
+claude mcp add unity-explorer -- uv run --directory /path/to/mcp-server server
+```
+4. Launch a game with UnityExplorer — it auto-connects
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `game_status` | Connection status, game name, Unity version, FPS |
+| `list_scenes` / `load_scene` | Browse and load scenes |
+| `get_scene_objects` / `get_children` / `get_hierarchy` | Navigate the scene hierarchy |
+| `search_objects` / `search_classes` / `search_singletons` | Find objects, types, and singletons |
+| `get_components` / `inspect_component` | List and inspect components via reflection |
+| `get_value` / `set_value` / `invoke_method` | Read/write fields and call methods |
+| `execute_csharp` | Run arbitrary C# in the game's REPL |
+| `get_logs` | Read recent game logs |
+| `capture_screenshot` | Capture the current game view |
+
+See [mcp-server/README.md](mcp-server/README.md) for full setup documentation.
 
 # Building
 
