@@ -187,9 +187,11 @@ async def get_logs(count: int = 50, log_type: str = "all") -> dict:
 
 @mcp.tool()
 async def capture_screenshot() -> Image:
-    """Capture a screenshot of the current game view."""
+    """Capture a screenshot of the current game view. Saves to disk and returns the image."""
     result = await _cmd("capture_screenshot")
-    png_bytes = base64.b64decode(result["data"])
+    path = result["path"]
+    with open(path, "rb") as f:
+        png_bytes = f.read()
     return Image(data=png_bytes, format="png")
 
 
