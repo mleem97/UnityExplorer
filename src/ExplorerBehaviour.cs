@@ -32,6 +32,8 @@ namespace UnityExplorer
         internal void Update()
         {
             ExplorerCore.Update();
+            MCP.CommandDispatcher.Update();
+            MCP.MCPBridge.Update();
         }
 
         // For editor, to clean up objects
@@ -47,6 +49,8 @@ namespace UnityExplorer
         {
             if (quitting) return;
             quitting = true;
+
+            MCP.MCPBridge.Shutdown();
 
             TryDestroy(UIManager.UIRoot?.transform.root.gameObject);
 
