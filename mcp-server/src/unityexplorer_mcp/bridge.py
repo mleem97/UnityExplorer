@@ -58,7 +58,7 @@ class GameBridge:
             await self._server.wait_closed()
 
     @asynccontextmanager
-    async def lifespan(self):
+    async def lifespan(self, app=None):
         """Context manager for use with FastMCP lifespan — starts/stops the bridge."""
         await self.start()
         try:

@@ -343,8 +343,11 @@ namespace UnityExplorer.MCP.Handlers
             // Collections (limited)
             if (val is System.Collections.IList list)
             {
+                int totalCount = list.Count;
+                bool truncated = totalCount > 100;
                 var lb = new JsonHelper.JsonBuilder();
-                lb.StartArray();
+                lb.StartObject()
+                    .Key("items").StartArray();
                 int count = 0;
                 foreach (object item in list)
                 {
@@ -352,7 +355,10 @@ namespace UnityExplorer.MCP.Handlers
                     lb.Raw(SerializeValue(item));
                     count++;
                 }
-                lb.EndArray();
+                lb.EndArray()
+                    .Key("count").Value(totalCount)
+                    .Key("truncated").Value(truncated)
+                .EndObject();
                 return lb.ToString();
             }
 

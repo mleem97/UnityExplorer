@@ -103,7 +103,14 @@ namespace UnityExplorer.MCP
                         case '\n': sb.Append("\\n"); break;
                         case '\r': sb.Append("\\r"); break;
                         case '\t': sb.Append("\\t"); break;
-                        default: sb.Append(c); break;
+                        case '\b': sb.Append("\\b"); break;
+                        case '\f': sb.Append("\\f"); break;
+                        default:
+                            if (c < 0x20)
+                                sb.AppendFormat("\\u{0:x4}", (int)c);
+                            else
+                                sb.Append(c);
+                            break;
                     }
                 }
             }
@@ -208,7 +215,17 @@ namespace UnityExplorer.MCP
                         case 'n': sb.Append('\n'); break;
                         case 'r': sb.Append('\r'); break;
                         case 't': sb.Append('\t'); break;
+                        case 'b': sb.Append('\b'); break;
+                        case 'f': sb.Append('\f'); break;
                         case '/': sb.Append('/'); break;
+                        case 'u':
+                            if (i + 4 < json.Length)
+                            {
+                                string hex = json.Substring(i + 1, 4);
+                                sb.Append((char)int.Parse(hex, NumberStyles.HexNumber));
+                                i += 4;
+                            }
+                            break;
                         default: sb.Append(json[i]); break;
                     }
                 }

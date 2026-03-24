@@ -18,6 +18,7 @@ namespace UnityExplorer.MCP
         private static volatile bool shouldRun;
         private static float reconnectTimer;
         private static float heartbeatTimer;
+        private static readonly object sendLock = new();
 
         private const float HEARTBEAT_INTERVAL = 5f;
 
@@ -37,13 +38,16 @@ namespace UnityExplorer.MCP
         {
             if (!shouldRun) return;
 
-            if (!connected && !connecting)
+            if (!connected)
             {
-                reconnectTimer -= Time.unscaledDeltaTime;
-                if (reconnectTimer <= 0f)
+                if (!connecting)
                 {
-                    reconnectTimer = ConfigManager.MCP_Reconnect_Delay.Value;
-                    TryConnectAsync();
+                    reconnectTimer -= Time.unscaledDeltaTime;
+                    if (reconnectTimer <= 0f)
+                    {
+                        reconnectTimer = ConfigManager.MCP_Reconnect_Delay.Value;
+                        TryConnectAsync();
+                    }
                 }
                 return;
             }
@@ -243,8 +247,11 @@ namespace UnityExplorer.MCP
             for (int i = 0; i < payload.Length; i++)
                 frame[offset + i] = (byte)(payload[i] ^ mask[i % 4]);
 
-            lock (stream)
-                stream.Write(frame, 0, frame.Length);
+            lock (sendLock)
+            {
+                if (stream != null)
+                    stream.Write(frame, 0, frame.Length);
+            }
         }
 
         private static string ReadFrame(NetworkStream s)
@@ -302,6 +309,10 @@ namespace UnityExplorer.MCP
                     stream.Write(pong, 0, pong.Length);
                 return ReadFrame(s); // read next real frame
             }
+
+            // Only process text frames (0x01), skip pong (0x0A) and others
+            if (opcode != 0x01)
+                return ReadFrame(s);
 
             return Encoding.UTF8.GetString(payload);
         }
