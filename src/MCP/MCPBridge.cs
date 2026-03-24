@@ -26,6 +26,14 @@ namespace UnityExplorer.MCP
 
         private static volatile bool connecting;
 
+        // Queue log messages from background threads to be emitted on the main thread
+        private static readonly LockedQueue<KeyValuePair<string, bool>> pendingLogs = new();
+
+        private static void LogThreadSafe(string message, bool isWarning = false)
+        {
+            pendingLogs.Enqueue(new KeyValuePair<string, bool>(message, isWarning));
+        }
+
         internal static void Init()
         {
             CommandDispatcher.Init();
@@ -37,6 +45,15 @@ namespace UnityExplorer.MCP
         internal static void Update()
         {
             if (!shouldRun) return;
+
+            // Flush pending log messages on main thread
+            while (pendingLogs.TryDequeue(out var log))
+            {
+                if (log.Value)
+                    ExplorerCore.LogWarning(log.Key);
+                else
+                    ExplorerCore.Log(log.Key);
+            }
 
             if (!connected)
             {
@@ -112,7 +129,7 @@ namespace UnityExplorer.MCP
                 string response = Encoding.ASCII.GetString(buffer, 0, read);
                 if (!response.Contains("101"))
                 {
-                    ExplorerCore.LogWarning("[MCP] WebSocket handshake failed.");
+                    LogThreadSafe("[MCP] WebSocket handshake failed.", true);
                     Disconnect();
                     return;
                 }
@@ -143,11 +160,11 @@ namespace UnityExplorer.MCP
                 receiveThread = new Thread(ReceiveLoop) { IsBackground = true };
                 receiveThread.Start();
 
-                ExplorerCore.Log("[MCP] Connected to MCP server.");
+                LogThreadSafe("[MCP] Connected to MCP server.");
             }
             catch (Exception ex)
             {
-                ExplorerCore.LogWarning($"[MCP] Connection failed: {ex.Message}");
+                LogThreadSafe($"[MCP] Connection failed: {ex.Message}", true);
                 Disconnect();
             }
         }
@@ -168,7 +185,7 @@ namespace UnityExplorer.MCP
             catch (Exception ex)
             {
                 if (connected)
-                    ExplorerCore.LogWarning($"[MCP] Receive error: {ex.Message}");
+                    LogThreadSafe($"[MCP] Receive error: {ex.Message}", true);
             }
             finally
             {
@@ -185,7 +202,7 @@ namespace UnityExplorer.MCP
             }
             catch (Exception ex)
             {
-                ExplorerCore.LogWarning($"[MCP] Send error: {ex.Message}");
+                LogThreadSafe($"[MCP] Send error: {ex.Message}", true);
                 Disconnect();
             }
         }
@@ -305,8 +322,11 @@ namespace UnityExplorer.MCP
                 Array.Copy(pMask, 0, pong, 2, 4);
                 for (int i = 0; i < payload.Length; i++)
                     pong[6 + i] = (byte)(payload[i] ^ pMask[i % 4]);
-                lock (stream)
-                    stream.Write(pong, 0, pong.Length);
+                lock (sendLock)
+                {
+                    if (stream != null)
+                        stream.Write(pong, 0, pong.Length);
+                }
                 return ReadFrame(s); // read next real frame
             }
 
