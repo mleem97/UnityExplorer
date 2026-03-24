@@ -47,7 +47,9 @@ namespace UnityExplorer.MCP
                     ExplorerCore.LogWarning($"[MCP] Error handling command: {ex}");
                 }
 
-                MCPBridge.SendResponse(response);
+                // null response means the handler is sending its own response async (e.g. screenshot coroutine)
+                if (response != null)
+                    MCPBridge.SendResponse(response);
             }
         }
 
@@ -60,6 +62,7 @@ namespace UnityExplorer.MCP
             Handlers.InspectionCommandHandler.Register();
             Handlers.ConsoleCommandHandler.Register();
             Handlers.LogCommandHandler.Register();
+            Handlers.ScreenshotCommandHandler.Register();
         }
     }
 }

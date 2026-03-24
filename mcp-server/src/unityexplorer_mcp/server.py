@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import base64
 import logging
 import os
 
-from fastmcp import FastMCP
+from fastmcp import FastMCP, Image
 
 from .bridge import GameBridge
 
@@ -179,6 +180,16 @@ async def execute_csharp(code: str) -> dict:
 async def get_logs(count: int = 50, log_type: str = "all") -> dict:
     """Get recent game logs. log_type: all|log|warning|error."""
     return await _cmd("get_logs", {"count": count, "log_type": log_type})
+
+
+# ── Screenshot ────────────────────────────────────────────────────────────────
+
+@mcp.tool()
+async def capture_screenshot() -> Image:
+    """Capture a screenshot of the current game view."""
+    result = await _cmd("capture_screenshot")
+    png_bytes = base64.b64decode(result["data"])
+    return Image(data=png_bytes, format="png")
 
 
 # ── Entrypoint ────────────────────────────────────────────────────────────────
