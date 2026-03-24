@@ -6,7 +6,8 @@ import base64
 import logging
 import os
 
-from fastmcp import FastMCP, Image
+from fastmcp import FastMCP
+from fastmcp.utilities.types import Image
 
 from .bridge import GameBridge
 
