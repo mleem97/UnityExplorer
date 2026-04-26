@@ -351,3 +351,13 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# Local Claude / MCP config
+.claude/
+.mcp.json
+
+# Local-only docs (superpowers plans/specs)
+docs/superpowers/
+
+# Release zip artifacts (uploaded to GitHub releases instead)
+release-artifacts/
