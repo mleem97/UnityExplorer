@@ -23,17 +23,19 @@ Remove-Item $Path/../UnityExplorer.MelonLoader.IL2CPP.CoreCLR.zip -ErrorAction S
 dotnet build src/UnityExplorer.sln -c Release_ML_Cpp_net6
 $Path = "Release\UnityExplorer.MelonLoader.IL2CPP.net6preview"
 # ILRepack
-lib/ILRepack.exe /target:library /lib:lib/net6 /lib:lib/unhollowed /lib:$Path /internalize /out:$Path/UnityExplorer.ML.IL2CPP.net6preview.dll $Path/UnityExplorer.ML.IL2CPP.net6preview.dll $Path/mcs.dll 
+lib/ILRepack.exe /target:library /lib:lib/net6 /lib:lib/interop /lib:$Path /internalize /out:$Path/UnityExplorer.ML.IL2CPP.net6preview.dll $Path/UnityExplorer.ML.IL2CPP.net6preview.dll $Path/mcs.dll 
 # (cleanup and move files)
 Remove-Item $Path/UnityExplorer.ML.IL2CPP.net6preview.deps.json
 Remove-Item $Path/Tomlet.dll
 Remove-Item $Path/mcs.dll
 Remove-Item $Path/Iced.dll
-Remove-Item $Path/UnhollowerBaseLib.dll
+Remove-Item $Path/Il2CppInterop.Common.dll
+Remove-Item $Path/Il2CppInterop.Runtime.dll
+Remove-Item $Path/Microsoft.Extensions.Logging.Abstractions.dll
 New-Item -Path "$Path" -Name "Mods" -ItemType "directory" -Force
 Move-Item -Path $Path/UnityExplorer.ML.IL2CPP.net6preview.dll -Destination $Path/Mods -Force
 New-Item -Path "$Path" -Name "UserLibs" -ItemType "directory" -Force
-Move-Item -Path $Path/UniverseLib.IL2CPP.Unhollower.dll -Destination $Path/UserLibs -Force
+Move-Item -Path $Path/UniverseLib.IL2CPP.Interop.dll -Destination $Path/UserLibs -Force
 # (create zip archive)
 Remove-Item $Path/../UnityExplorer.MelonLoader.IL2CPP.net6preview.zip -ErrorAction SilentlyContinue
 7z a $Path/../UnityExplorer.MelonLoader.IL2CPP.net6preview.zip .\$Path\*
