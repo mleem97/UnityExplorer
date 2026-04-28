@@ -21,11 +21,11 @@
         <DefineConstants>CPP,ML,INTEROP</DefineConstants>
         <AssemblyName>UnityExplorer.ML.IL2CPP.CoreCLR</AssemblyName>
     </PropertyGroup>
-    <!-- ML IL2CPP net6 (legacy Unhollower) -->
+    <!-- ML IL2CPP net6 (Il2CppInterop, MelonLoader 0.6+) -->
     <PropertyGroup Condition="'$(Configuration)'=='ML_Cpp_net6'">
         <TargetFramework>net6</TargetFramework>
         <OutputPath>..\Release\UnityExplorer.MelonLoader.IL2CPP.net6preview\</OutputPath>
-        <DefineConstants>CPP,ML,UNHOLLOWER</DefineConstants>
+        <DefineConstants>CPP,ML,INTEROP</DefineConstants>
 		<AssemblyName>UnityExplorer.ML.IL2CPP.net6preview</AssemblyName>
     </PropertyGroup>
     <!-- ML IL2CPP net472 (TEMP) -->
@@ -91,11 +91,11 @@
         <PackageReference Include="Samboy063.Tomlet" Version="3.1.3" />
     </ItemGroup>
     <!-- il2cpp nuget -->
-    <ItemGroup Condition="'$(Configuration)'=='ML_Cpp_net6' or '$(Configuration)'=='ML_Cpp_net472' or '$(Configuration)'=='STANDALONE_Cpp' or '$(Configuration)'=='BIE_Cpp'">
+    <ItemGroup Condition="'$(Configuration)'=='ML_Cpp_net472' or '$(Configuration)'=='STANDALONE_Cpp' or '$(Configuration)'=='BIE_Cpp'">
         <PackageReference Include="Il2CppAssemblyUnhollower.BaseLib" Version="0.4.22" />
         <PackageReference Include="UniverseLib.IL2CPP.Unhollower" Version="1.5.1" />
     </ItemGroup>
-    <ItemGroup Condition="'$(Configuration)'=='BIE_Cpp_CoreCLR' or '$(Configuration)'=='ML_Cpp_CoreCLR'">
+    <ItemGroup Condition="'$(Configuration)'=='BIE_Cpp_CoreCLR' or '$(Configuration)'=='ML_Cpp_CoreCLR' or '$(Configuration)'=='ML_Cpp_net6'">
         <PackageReference Include="Il2CppInterop.Common" Version="1.0.0" />
         <PackageReference Include="Il2CppInterop.Runtime" Version="1.0.0" />
         <PackageReference Include="UniverseLib.IL2CPP.Interop" Version="1.5.1" />
@@ -175,7 +175,7 @@
         </Reference>
     </ItemGroup>
     <!-- Il2Cpp Unhollower -->
-    <ItemGroup Condition="'$(Configuration)'=='ML_Cpp_net6' or '$(Configuration)'=='ML_Cpp_net472' or '$(Configuration)'=='STANDALONE_Cpp' or '$(Configuration)'=='BIE_Cpp'">
+    <ItemGroup Condition="'$(Configuration)'=='ML_Cpp_net472' or '$(Configuration)'=='STANDALONE_Cpp' or '$(Configuration)'=='BIE_Cpp'">
         <Reference Include="Il2Cppmscorlib">
             <HintPath>..\lib\unhollowed\Il2Cppmscorlib.dll</HintPath>
             <Private>False</Private>
@@ -218,7 +218,7 @@
         </Reference>
     </ItemGroup>
     <!-- Il2Cpp Interop -->
-    <ItemGroup Condition="'$(Configuration)'=='BIE_Cpp_CoreCLR' or '$(Configuration)'=='ML_Cpp_CoreCLR'">
+    <ItemGroup Condition="'$(Configuration)'=='BIE_Cpp_CoreCLR' or '$(Configuration)'=='ML_Cpp_CoreCLR' or '$(Configuration)'=='ML_Cpp_net6'">
         <Reference Include="Il2Cppmscorlib">
             <HintPath>..\lib\interop\Il2Cppmscorlib.dll</HintPath>
             <Private>False</Private>
