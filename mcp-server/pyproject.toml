@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "MCP server for UnityExplorer - inspect and interact with Unity games"
 requires-python = ">=3.11"
 dependencies = [
-    "fastmcp>=2.0.0",
+    "fastmcp>=3.2.0",
     "websockets>=14.0",
 ]
 
